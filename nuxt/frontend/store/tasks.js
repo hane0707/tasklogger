@@ -11,7 +11,10 @@ export const mutations = {
   setViewList: (state, viewList) => (state.viewList = viewList),
   setCount: (state, count) => (state.count = count),
   removeTask: (state, id) => (state.viewList = state.viewList.filter(task => task.id !== id)),
-  setRegistTask: (state, task) => state.list.unshift(task)
+  setRegistTask: (state, task) => {
+    state.list.unshift(task)
+    // state.list.unshift(task)
+  }
 }
 
 export const actions = {
@@ -36,19 +39,16 @@ export const actions = {
       console.log(e)
     }
   },
-  async registTask ({ commit }, newTask) {
-    const config = {
-      headers: { 'content-type': 'multipart/form-data' }
-    }
-    const formData = new FormData()
-    for (const data in newTask) {
-      formData.append(data, newTask[data])
-    }
+  async registTask ({ dispatch }, { newTask, date }) {
+    let response = ''
     try {
-      const response = await this.$axios.$post('/api/tasks/', formData, config) // eslint-disable-line
-      commit('setRegistTask', response.data)
-    } catch (e) {
-      console.log(e)
+      response = await this.$axios.$post('/api/tasks/', newTask) // eslint-disable-line      
+    } catch (error) {
+      console.log(error.response)
     }
+    if (response.start_date === date) {
+      dispatch('getList', date)
+    }
+    // commit('setRegistTask', response)
   }
 }

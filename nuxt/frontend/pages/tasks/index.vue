@@ -1,17 +1,13 @@
 <template>
   <div class="row">
     <div class="col">
-      <form class="form-inline row pb-2 mb-2 border-bottom border-light">
-        <div class="form-group">
-          <input
-            id="task-title"
-            v-model="newTask.title"
-            type="text"
-            class="form-control"
-            placeholder="タスクのタイトル">
-          <button @click="registTask(newTask)" class="btn btn-success mx-2 my-sm-0">新しい作業を開始する</button>
-        </div>
-      </form>
+      <input
+        id="task-title"
+        v-model="newTask.title"
+        type="text"
+        class="form-control"
+        placeholder="タスクのタイトル">
+      <button @click="registTask(newTask, searchDate)" class="btn btn-success mx-2 my-sm-0">新しい作業を開始する</button>
       <div class="row pb-2 mb-2">
         <input type="date" v-model="searchDate" class="col-sm-2 form-control">
         <button @click="getList(searchDate)" class="btn btn-primary mx-2">検索</button>
@@ -53,20 +49,23 @@ export default {
     return {
       searchDate: moment(new Date()).format('YYYY-MM-DD'),
       newTask: {
-        title: '',
+        title: 'no title',
         details: '',
-        start_date: '',
-        start_time: '',
-        end_date: '',
-        ent_time: ''
+        start_date: moment(new Date()).format('YYYY-MM-DD'),
+        start_time: moment(new Date()).format('HH:mm:ss'),
+        end_date: null,
+        ent_time: null
       }
     }
   },
   methods: {
     ...mapActions({
-      getList: 'tasks/getList',
-      registTask: 'tasks/registTask'
+      getList: 'tasks/getList'
+      // registTask: 'tasks/registTask'
     }),
+    registTask (newTask, date) {
+      this.$store.dispatch('tasks/registTask', { newTask, date })
+    },
     deleteTask (id, date) {
       // 複数の引数を1つのオブジェクトとしてしか渡せないため、mapActionsを使わない
       this.$store.dispatch('tasks/deleteTask', { id, date })
