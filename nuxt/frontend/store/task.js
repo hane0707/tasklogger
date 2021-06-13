@@ -11,8 +11,7 @@ export const mutations = {
   setViewList: (state, viewList) => (state.viewList = viewList),
   setCount: (state, count) => (state.count = count),
   setErrorFlg: (state, flg) => (state.errorFlg = flg),
-  setErrorMessage: (state, message) => (state.errorMessage = message),
-  removeTask: (state, id) => (state.viewList = state.viewList.filter(task => task.id !== id))
+  setErrorMessage: (state, message) => (state.errorMessage = message)
 }
 
 export const actions = {
@@ -27,14 +26,15 @@ export const actions = {
     commit('setViewList', viewList)
     commit('setCount', viewList.length)
   },
-  async deleteTask ({ dispatch }, { id, date }) {
+  async deleteTask ({ dispatch, commit }, { id, date }) {
     try {
       await this.$axios.$delete(`/api/task/${id}/`)
       dispatch('getList', date)
-      // commit('removeTask', id)
-      // commit('setCount', state.count - 1)
-    } catch (e) {
-      console.log(e)
+    } catch (error) {
+      console.log('エラー発生：')
+      console.log(error.response)
+      commit('setErrorFlg', true)
+      commit('setErrorMessage', 'データ削除時にエラーが発生しました。')
     }
   },
   async registTask ({ dispatch, commit }, { newTask, date }) {
@@ -44,15 +44,15 @@ export const actions = {
     let response = ''
     try {
       response = await this.$axios.$post('/api/task/', newTask) // eslint-disable-line
+
+      if (response.start_date === date) {
+        dispatch('getList', date)
+      }
     } catch (error) {
       console.log('エラー発生：')
       console.log(error.response)
       commit('setErrorFlg', true)
       commit('setErrorMessage', 'データ登録時にエラーが発生しました。')
-    }
-
-    if (response.start_date === date) {
-      dispatch('getList', date)
     }
   }
 }
