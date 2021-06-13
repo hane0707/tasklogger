@@ -1,20 +1,22 @@
 <template>
   <div class="row">
     <div class="col">
-      <input
-        id="task-title"
-        v-model="newTask.title"
-        type="text"
-        class="form-control"
-        placeholder="タスクのタイトル">
-      <button @click="registTask(newTask, searchDate)" class="btn btn-success mx-2 my-sm-0">新しい作業を開始する</button>
-      <div class="row pb-2 mb-2">
+      <div class="row mb-4">
+        <input
+          id="task-title"
+          v-model="newTask.title"
+          type="text"
+          class="form-control col-sm-4"
+          placeholder="タスクのタイトル">
+        <button @click="registTask(newTask, searchDate)" class="btn btn-success col-sm-2 mx-2 my-sm-0">新しい作業を開始する</button>
+        </div>
+      <div class="row mb-4">
         <input type="date" v-model="searchDate" class="col-sm-2 form-control">
         <button @click="getList(searchDate)" class="btn btn-primary mx-2">検索</button>
         {{ count }} 件の履歴があります。
       </div>
-      <template v-for="task in viewList">
-        <div :key="task.id" class="mb-4">
+      <div v-for="task in viewList" :key="task.id">
+        <div class="mb-4">
           <!-- TaskCard Start-->
           <div class="card task-card">
             <div class="card-body">
@@ -33,7 +35,7 @@
           </div>
           <!-- TaskCard End -->
         </div>
-      </template>
+      </div>
     </div>
   </div>
 </template>
@@ -49,7 +51,7 @@ export default {
     return {
       searchDate: moment(new Date()).format('YYYY-MM-DD'),
       newTask: {
-        title: 'no title',
+        title: '',
         details: '',
         start_date: moment(new Date()).format('YYYY-MM-DD'),
         start_time: moment(new Date()).format('HH:mm:ss'),
@@ -65,6 +67,7 @@ export default {
     }),
     registTask (newTask, date) {
       this.$store.dispatch('tasks/registTask', { newTask, date })
+      newTask.title = ''
     },
     deleteTask (id, date) {
       // 複数の引数を1つのオブジェクトとしてしか渡せないため、mapActionsを使わない

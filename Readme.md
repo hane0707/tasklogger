@@ -1,6 +1,11 @@
 git clone後、settings.pyと同一ディレクトリで以下を実行
 `$ python generate_secretkey_setting.py > local_settings.py`
 
+
+docker起動後、`./tasklogger`上で`docker exec -it nuxt /bin/bash`
+`cd frontend/`
+`yarn run dev`
+
 参考：https://qiita.com/Motonosuke/items/89602405937edea8fa7a
 # Django側設定
 ### dbコンテナ立ち上げ

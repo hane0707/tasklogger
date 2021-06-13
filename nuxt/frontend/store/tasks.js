@@ -40,15 +40,17 @@ export const actions = {
     }
   },
   async registTask ({ dispatch }, { newTask, date }) {
+    newTask.title = newTask.title === '' ? 'no title' : newTask.title
+
     let response = ''
     try {
-      response = await this.$axios.$post('/api/tasks/', newTask) // eslint-disable-line      
+      response = await this.$axios.$post('/api/tasks/', newTask) // eslint-disable-line
     } catch (error) {
       console.log(error.response)
     }
+
     if (response.start_date === date) {
       dispatch('getList', date)
     }
-    // commit('setRegistTask', response)
   }
 }
