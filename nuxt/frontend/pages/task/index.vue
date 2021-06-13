@@ -27,7 +27,7 @@
               </div>
               <p><b>開始日時：</b>{{ task.start_date }} {{ task.start_time }}</p>
               <p><b>終了日時：</b>{{ task.end_date }} {{ task.end_time }}</p>
-              <nuxt-link :to="`/tasks/${task.id}/edit/`" class="btn btn-sm btn-outline-primary">
+              <nuxt-link :to="`/task/${task.id}/edit/`" class="btn btn-sm btn-outline-primary">
                 編集
               </nuxt-link>
               <button @click="deleteTask(task.id, searchDate)" class="btn btn-sm btn-outline-danger">削除</button>
@@ -46,7 +46,7 @@ import moment from 'moment'
 // import TaskCard from '~/components/TaskCard.vue'
 
 export default {
-  name: 'tasks',
+  name: 'task',
   data () {
     return {
       searchDate: moment(new Date()).format('YYYY-MM-DD'),
@@ -62,16 +62,16 @@ export default {
   },
   methods: {
     ...mapActions({
-      getList: 'tasks/getList'
-      // registTask: 'tasks/registTask'
+      getList: 'task/getList'
+      // registTask: 'task/registTask'
     }),
     registTask (newTask, date) {
-      this.$store.dispatch('tasks/registTask', { newTask, date })
+      this.$store.dispatch('task/registTask', { newTask, date })
       newTask.title = ''
     },
     deleteTask (id, date) {
       // 複数の引数を1つのオブジェクトとしてしか渡せないため、mapActionsを使わない
-      this.$store.dispatch('tasks/deleteTask', { id, date })
+      this.$store.dispatch('task/deleteTask', { id, date })
     }
   },
   mounted () {
@@ -79,9 +79,9 @@ export default {
   },
   computed: {
     ...mapState({
-      list: state => state.tasks.list,
-      viewList: state => state.tasks.viewList,
-      count: state => state.tasks.count
+      list: state => state.task.list,
+      viewList: state => state.task.viewList,
+      count: state => state.task.count
     })
   },
   filters: {

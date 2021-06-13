@@ -2,7 +2,7 @@
   <header class="top-header">
     <div class="text-box">
       <h1>タスク履歴</h1>
-      <nuxt-link class="btn btn-outline btn-large btn-info" to="/tasks">
+      <nuxt-link class="btn btn-outline btn-large btn-info" to="/task">
         タスクを登録する
       </nuxt-link>
     </div>

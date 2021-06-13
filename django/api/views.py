@@ -1,11 +1,11 @@
 from django.db import models
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
-from .models import Tasks
-from .serializers import TasksSerializer
+from .models import Task
+from .serializers import TaskSerializer
 
-class TasksViewSet(viewsets.ModelViewSet):
-  model = Tasks
-  serializer_class = TasksSerializer
-  queryset = Tasks.objects.all()
+class TaskViewSet(viewsets.ModelViewSet):
+  model = Task
+  serializer_class = TaskSerializer
+  queryset = Task.objects.all()
   permission_classes = (AllowAny, )

@@ -1,5 +1,3 @@
-// import moment from 'moment'
-
 export const state = () => ({
   list: [],
   viewList: [],
@@ -19,7 +17,7 @@ export const mutations = {
 
 export const actions = {
   async getList ({ commit }, date) {
-    const list = await this.$axios.$get('/api/tasks/')
+    const list = await this.$axios.$get('/api/task/')
 
     const viewList = list.filter(
       task => task.start_date === date
@@ -31,7 +29,7 @@ export const actions = {
   },
   async deleteTask ({ dispatch }, { id, date }) {
     try {
-      await this.$axios.$delete(`/api/tasks/${id}/`)
+      await this.$axios.$delete(`/api/task/${id}/`)
       dispatch('getList', date)
       // commit('removeTask', id)
       // commit('setCount', state.count - 1)
@@ -44,7 +42,7 @@ export const actions = {
 
     let response = ''
     try {
-      response = await this.$axios.$post('/api/tasks/', newTask) // eslint-disable-line
+      response = await this.$axios.$post('/api/task/', newTask) // eslint-disable-line
     } catch (error) {
       console.log(error.response)
     }

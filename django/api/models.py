@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from datetime import date
 from django.db import models
 
-class Tasks(models.Model):
+class Task(models.Model):
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
   title = models.CharField(verbose_name='タイトル', blank=False, null=False, max_length=30, default='no title')
   details = models.TextField(verbose_name='詳細', blank=True, null=True, max_length=1000)
