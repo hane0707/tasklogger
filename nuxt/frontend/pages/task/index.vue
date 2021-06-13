@@ -58,8 +58,8 @@ export default {
       newTask: {
         title: '',
         details: '',
-        start_date: moment(new Date()).format('YYYY-MM-DD'),
-        start_time: moment(new Date()).format('HH:mm:ss'),
+        start_date: null,
+        start_time: null,
         end_date: null,
         ent_time: null
       }
@@ -72,7 +72,6 @@ export default {
     }),
     registTask (newTask, date) {
       this.$store.dispatch('task/registTask', { newTask, date })
-      newTask.title = ''
     },
     deleteTask (id, date) {
       // 複数の引数を1つのオブジェクトとしてしか渡せないため、mapActionsを使わない
