@@ -4,6 +4,9 @@
       <b-alert v-model="errorFlg" variant="danger" dismissible>
         {{ errorMessage }}
       </b-alert>
+      <b-alert v-model="successFlg" variant="success" dismissible>
+        {{ successMessage }}
+      </b-alert>
       <div class="row task-regist mb-4">
         <input
           id="task-title"
@@ -21,15 +24,19 @@
           <b-button @click="getTasks()" variant="primary" class="mx-2">
             検索
           </b-button>
-          {{ viewCount }} 件の履歴があります。
+          {{ viewCount }} 件の履歴があります。（内 {{ editCount }} 件のタスクを編集中です）
         </div>
         <div v-for="(task, index) in taskViewList" :key="task.id">
           <div class="mb-4">
             <!-- TaskCard Start-->
-            <b-card
-              :title="task.title"
-              class="task-card">
-              <b-card-body v-if="!task.isEdit">
+            <b-card class="task-card">
+              <transition name="fade">
+                <span class="alert alert-success" v-if="editedMessageList[index].flg">
+                  {{ editedMessageList[index].message }}
+                </span>
+              </transition>
+              <b-card-body v-if="!editCheckList[index]">
+                <h4>{{ task.title }}</h4>
                 <p><b>詳細：</b></p>
                 <p>{{ task.details }}</p>
                 <p><b>開始日時：</b>{{ task.start_date }} {{ task.start_time }}</p>
@@ -40,15 +47,15 @@
                   <label :for="`task-title-${index}`"><b>タイトル：</b></label>
                   <b-form-input
                     :id="`task-title-${index}`"
-                    :value="task.title"
+                    v-model="taskEditViewList[index].title"
                     v-focus
                     placeholder="タスクのタイトルを記載してください。"></b-form-input>
                 </div>
                 <div class="col-sm-12">
-                  <label :for="`task-detail-${index}`"><b>詳細：</b></label>
+                  <label :for="`task-details-${index}`"><b>詳細：</b></label>
                   <b-form-textarea
-                    :id="`task-detail-${index}}`"
-                    :value="task.detail"
+                    :id="`task-details-${index}}`"
+                    v-model="taskEditViewList[index].details"
                     placeholder="タスクの詳細を記載してください。"
                     rows="3"
                     max-rows="8"></b-form-textarea>
@@ -57,7 +64,7 @@
                   <label :for="`task-startdate-${index}`"><b>開始日付：</b></label>
                   <b-form-datepicker
                     :id="`task-startdate-${index}`"
-                    :value="task.start_date"
+                    v-model="taskEditViewList[index].start_date"
                     today-button
                     reset-button
                     close-button
@@ -67,7 +74,7 @@
                   <label :for="`task-starttime-${index}`"><b>開始時間：</b></label>
                   <b-form-timepicker
                     :id="`task-starttime-${index}`"
-                    :value="task.start_time"
+                    v-model="taskEditViewList[index].start_time"
                     now-button
                     reset-button
                     locale="ja"></b-form-timepicker>
@@ -77,7 +84,7 @@
                   <label :for="`task-enddate-${index}`"><b>終了日付：</b></label>
                   <b-form-datepicker
                     :id="`task-enddate-${index}`"
-                    :value="task.end_date"
+                    v-model="taskEditViewList[index].end_date"
                     today-button
                     reset-button
                     close-button
@@ -87,15 +94,15 @@
                   <label :for="`task-endtime-${index}`"><b>終了時間：</b></label>
                   <b-form-timepicker
                     :id="`task-endtime-${index}`"
-                    :value="task.end_time"
+                    v-model="taskEditViewList[index].end_time"
                     now-button
                     reset-button
                     locale="ja"></b-form-timepicker>
                 </div>
               </b-card-body>
-              <b-button v-if="!task.isEdit" @click="task.isEdit = true" variant="outline-info">編集</b-button>
-              <b-button v-if="task.isEdit" @click="task.isEdit = false" variant="outline-warning">キャンセル</b-button>
-              <b-button v-if="task.isEdit" @click="updataTask(task.id)" variant="outline-success">更新</b-button>
+              <b-button v-if="!editCheckList[index]" @click="doEdit(index)" variant="outline-info">編集</b-button>
+              <b-button v-if="editCheckList[index]" @click="cancelEdit(index)" variant="outline-warning">キャンセル</b-button>
+              <b-button v-if="editCheckList[index]" @click="updateTask(index)" variant="outline-success">更新</b-button>
               <b-button @click="deleteTask(task.id)" variant="outline-danger">削除</b-button>
             </b-card>
             <!-- TaskCard End -->
@@ -125,9 +132,15 @@ export default {
       },
       taskList: [],
       taskViewList: [],
+      taskEditViewList: [],
       viewCount: 0,
+      editCheckList: [],
+      editedMessageList: [],
+      editCount: 0,
       errorFlg: false,
-      errorMessage: ''
+      errorMessage: '',
+      successFlg: false,
+      successMessage: ''
     }
   },
   methods: {
@@ -136,15 +149,26 @@ export default {
       this.taskViewList = this.taskList.filter(
         task => task.start_date === this.searchDate
       )
-      this.viewCount = this.taskViewList.length
 
-      // 編集状態チェック用データを足す
-      const addArray = _.cloneDeepWith(this.taskViewList, function (val) {
-        if (typeof (val ?? '').id !== 'undefined') {
-          val.isEdit = false
-        }
-      })
-      this.taskViewList = addArray
+      this.viewCount = this.taskViewList.length
+      for (let i = 0; i < this.taskViewList.length; i++) {
+        this.editCheckList[i] = false
+      }
+      for (let i = 0; i < this.taskViewList.length; i++) {
+        console.log(this.editedMessageList[i])
+        this.editedMessageList.push({ flg: false, message: '' })
+      }
+
+      // taskViewListに編集状態チェック用フラグを足す
+      // const addArray = _.cloneDeepWith(this.taskViewList, function (val) {
+      //   if (typeof (val ?? '').id !== 'undefined') {
+      //     val.isEdit = false
+      //   }
+      // })
+      // this.taskViewList = addArray
+
+      // お互いに値をコピーすることがあるので、isEdit追加後に行う
+      this.taskEditViewList = _.cloneDeepWith(this.taskViewList)
     },
     async registTask () {
       // stateを初期化
@@ -187,6 +211,38 @@ export default {
         this.getTasks()
       }
     },
+    async updateTask (index) {
+      // 更新内容を設定
+      const editedTask = this.taskEditViewList[index]
+      const values = {
+        title: editedTask.title,
+        details: editedTask.details,
+        start_date: editedTask.start_date,
+        start_time: editedTask.start_time,
+        end_date: editedTask.end_date,
+        end_time: editedTask.end_time
+      }
+
+      try {
+        await this.$axios.$patch(`/api/task/${this.taskViewList[index].id}/`, values)
+        this.taskViewList[index] = await this.$axios.$get(`/api/task/${this.taskViewList[index].id}/`)
+        this.editCheckList[index] = false
+        this.editedMessageList[index].flg = true
+        this.editedMessageList[index].message = 'updated!'
+        setTimeout(() => {
+          this.editedMessageList[index].flg = false
+          this.editedMessageList[index].message = ''
+        }, 3000)
+        this.editCount--
+      } catch (error) {
+        console.log('エラー発生：')
+        console.log(error.response)
+        this.errorFlg = true
+        this.errorMessage = 'データ更新時にエラーが発生しました。'
+        this.editedMessageList[index].flg = true
+        this.editedMessageList[index].message = 'failed!'
+      }
+    },
     async deleteTask (id) {
       try {
         await this.$axios.$delete(`/api/task/${id}/`)
@@ -197,6 +253,15 @@ export default {
         this.errorFlg = true
         this.errorMessage = 'データ削除時にエラーが発生しました。'
       }
+    },
+    doEdit (index) {
+      this.editCheckList[index] = true
+      this.editCount++
+    },
+    cancelEdit (index) {
+      this.editCheckList[index] = false
+      this.taskEditViewList[index] = _.cloneDeepWith(this.taskViewList[index])
+      this.editCount--
     }
   },
   directives: {
