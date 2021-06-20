@@ -13,6 +13,7 @@ module.exports = {
   ],
   plugins: [
   ],
+  globals: { "_": true },
   // add your custom rules here
   rules: {}
 }
