@@ -156,6 +156,8 @@ export default {
       for (let i = 0; i < this.taskViewList.length; i++) {
         this.editCheckList[i] = false
       }
+
+      this.editedMessageList = []
       for (let i = 0; i < this.taskViewList.length; i++) {
         console.log(this.editedMessageList[i])
         this.editedMessageList.push({ message: '', hasError: false })
