@@ -24,14 +24,19 @@
           <b-button @click="getTasks()" variant="primary" class="mx-2">
             検索
           </b-button>
-          {{ viewCount }} 件の履歴があります。（内 {{ editCount }} 件のタスクを編集中です）
+          <div><span class="align-middle">{{ viewCount }} 件の履歴があります。</span></div>
         </div>
         <div v-for="(task, index) in taskViewList" :key="task.id">
           <div class="mb-4">
             <!-- TaskCard Start-->
             <b-card class="task-card">
               <transition name="fade">
-                <span class="alert alert-success" v-if="editedMessageList[index].flg">
+                <span
+                  class="alert"
+                  :class="{
+                    'alert-success': !editedMessageList[index].hasError,
+                    'alert-danger': editedMessageList[index].hasError }"
+                  v-if="editedMessageList[index].message">
                   {{ editedMessageList[index].message }}
                 </span>
               </transition>
@@ -136,11 +141,8 @@ export default {
       viewCount: 0,
       editCheckList: [],
       editedMessageList: [],
-      editCount: 0,
       errorFlg: false,
-      errorMessage: '',
-      successFlg: false,
-      successMessage: ''
+      errorMessage: ''
     }
   },
   methods: {
@@ -156,18 +158,9 @@ export default {
       }
       for (let i = 0; i < this.taskViewList.length; i++) {
         console.log(this.editedMessageList[i])
-        this.editedMessageList.push({ flg: false, message: '' })
+        this.editedMessageList.push({ message: '', hasError: false })
       }
 
-      // taskViewListに編集状態チェック用フラグを足す
-      // const addArray = _.cloneDeepWith(this.taskViewList, function (val) {
-      //   if (typeof (val ?? '').id !== 'undefined') {
-      //     val.isEdit = false
-      //   }
-      // })
-      // this.taskViewList = addArray
-
-      // お互いに値をコピーすることがあるので、isEdit追加後に行う
       this.taskEditViewList = _.cloneDeepWith(this.taskViewList)
     },
     async registTask () {
@@ -226,21 +219,21 @@ export default {
       try {
         await this.$axios.$patch(`/api/task/${this.taskViewList[index].id}/`, values)
         this.taskViewList[index] = await this.$axios.$get(`/api/task/${this.taskViewList[index].id}/`)
-        this.editCheckList[index] = false
-        this.editedMessageList[index].flg = true
+        this.$set(this.editCheckList, index, false)
+        this.editedMessageList[index].hasError = false
         this.editedMessageList[index].message = 'updated!'
-        setTimeout(() => {
-          this.editedMessageList[index].flg = false
-          this.editedMessageList[index].message = ''
-        }, 3000)
-        this.editCount--
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
         this.errorFlg = true
         this.errorMessage = 'データ更新時にエラーが発生しました。'
-        this.editedMessageList[index].flg = true
+        this.editedMessageList[index].hasError = true
         this.editedMessageList[index].message = 'failed!'
+      } finally {
+        setTimeout(() => {
+          this.editedMessageList[index].hasError = false
+          this.editedMessageList[index].message = ''
+        }, 3000)
       }
     },
     async deleteTask (id) {
@@ -255,13 +248,11 @@ export default {
       }
     },
     doEdit (index) {
-      this.editCheckList[index] = true
-      this.editCount++
+      this.$set(this.editCheckList, index, true)
     },
     cancelEdit (index) {
-      this.editCheckList[index] = false
-      this.taskEditViewList[index] = _.cloneDeepWith(this.taskViewList[index])
-      this.editCount--
+      this.$set(this.editCheckList, index, false)
+      this.taskEditViewList[index] = _.cloneDeepWith(this.taskViewList[index]) // 編集前の状態に初期化
     }
   },
   directives: {
