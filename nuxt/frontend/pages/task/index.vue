@@ -4,9 +4,6 @@
       <b-alert v-model="errorFlg" variant="danger" dismissible>
         {{ errorMessage }}
       </b-alert>
-      <b-alert v-model="successFlg" variant="success" dismissible>
-        {{ successMessage }}
-      </b-alert>
       <div class="row task-regist mb-4">
         <input
           id="task-title"
@@ -14,8 +11,8 @@
           type="text"
           class="form-control col-sm-4"
           placeholder="タスクのタイトル">
-        <b-button @click="registTask(newTask)" variant="success" class="col-sm-2 mx-2 my-sm-0">
-          新しい作業を開始する
+        <b-button @click="registTask(newTask)" variant="success" class="mx-2 my-sm-0">
+          すぐに作業を開始
         </b-button>
       </div>
       <div class="task-search">
@@ -30,85 +27,112 @@
           <div class="mb-4">
             <!-- TaskCard Start-->
             <b-card class="task-card">
-              <transition name="fade">
-                <span
+              <transition name="fade" v-if="editedMessageList[index].message">
+                <div
                   class="alert"
                   :class="{
                     'alert-success': !editedMessageList[index].hasError,
-                    'alert-danger': editedMessageList[index].hasError }"
-                  v-if="editedMessageList[index].message">
+                    'alert-danger': editedMessageList[index].hasError }">
                   {{ editedMessageList[index].message }}
-                </span>
+                </div>
               </transition>
               <b-card-body v-if="!editCheckList[index]">
-                <h4>{{ task.title }}</h4>
-                <p><b>詳細：</b></p>
-                <p>{{ task.details }}</p>
-                <p><b>開始日時：</b>{{ task.start_date }} {{ task.start_time }}</p>
-                <p><b>終了日時：</b>{{ task.end_date }} {{ task.end_time }}</p>
+                <b-card-title>{{ task.title }}</b-card-title>
+                <b-card-text>
+                  <p><b>詳細：</b></p>
+                  <p>{{ task.details }}</p>
+                  <p><b>開始日時：</b>{{ task.start_date }} {{ task.start_time }}</p>
+                  <p><b>終了日時：</b>{{ task.end_date }} {{ task.end_time }}</p>
+                </b-card-text>
+                <b-button v-if="!editCheckList[index]" @click="doEdit(index)" variant="outline-info">編集</b-button>
+                <b-button @click="deleteTask(task.id, index)" variant="outline-danger">削除</b-button>
               </b-card-body>
-              <b-card-body v-else class="row">
-                <div class="col-sm-12">
-                  <label :for="`task-title-${index}`"><b>タイトル：</b></label>
-                  <b-form-input
-                    :id="`task-title-${index}`"
-                    v-model="taskEditViewList[index].title"
-                    v-focus
-                    placeholder="タスクのタイトルを記載してください。"></b-form-input>
-                </div>
-                <div class="col-sm-12">
-                  <label :for="`task-details-${index}`"><b>詳細：</b></label>
-                  <b-form-textarea
-                    :id="`task-details-${index}}`"
-                    v-model="taskEditViewList[index].details"
-                    placeholder="タスクの詳細を記載してください。"
-                    rows="3"
-                    max-rows="8"></b-form-textarea>
-                </div>
-                <div class="col-sm-4">
-                  <label :for="`task-startdate-${index}`"><b>開始日付：</b></label>
-                  <b-form-datepicker
-                    :id="`task-startdate-${index}`"
-                    v-model="taskEditViewList[index].start_date"
-                    today-button
-                    reset-button
-                    close-button
-                    locale="ja"></b-form-datepicker>
-                </div>
-                <div class="col-sm-4">
-                  <label :for="`task-starttime-${index}`"><b>開始時間：</b></label>
-                  <b-form-timepicker
-                    :id="`task-starttime-${index}`"
-                    v-model="taskEditViewList[index].start_time"
-                    now-button
-                    reset-button
-                    locale="ja"></b-form-timepicker>
-                </div>
-                <div class="col-sm-4"></div>
-                <div class="col-sm-4">
-                  <label :for="`task-enddate-${index}`"><b>終了日付：</b></label>
-                  <b-form-datepicker
-                    :id="`task-enddate-${index}`"
-                    v-model="taskEditViewList[index].end_date"
-                    today-button
-                    reset-button
-                    close-button
-                    locale="ja"></b-form-datepicker>
-                </div>
-                <div class="col-sm-4">
-                  <label :for="`task-endtime-${index}`"><b>終了時間：</b></label>
-                  <b-form-timepicker
-                    :id="`task-endtime-${index}`"
-                    v-model="taskEditViewList[index].end_time"
-                    now-button
-                    reset-button
-                    locale="ja"></b-form-timepicker>
-                </div>
+              <b-card-body v-else>
+                <form
+                  :id="`task-${index}`"
+                  @submit.prevent="updateTask(index)"
+                  @reset.prevent="cancelEdit(index)"
+                  class="row">
+                  <b-form-group
+                    label="タイトル："
+                    :label-for="`task-title-${index}`"
+                    class="col-sm-12">
+                    <b-form-input
+                      :id="`task-title-${index}`"
+                      v-model="taskEditViewList[index].title"
+                      v-focus
+                      placeholder="タスクのタイトルを記載してください。"
+                      maxlength=30
+                      required></b-form-input>
+                  </b-form-group>
+                  <b-form-group
+                    label="詳細："
+                    :label-for="`task-details-${index}`"
+                    class="col-sm-12">
+                    <b-form-textarea
+                      :id="`task-details-${index}`"
+                      v-model="taskEditViewList[index].details"
+                      v-focus
+                      placeholder="タスクの詳細を記載してください。"
+                      maxlength=1000
+                      rows="3"
+                      max-rows="8"></b-form-textarea>
+                  </b-form-group>
+                  <b-form-group
+                    label="開始日付："
+                    :label-for="`task-startdate-${index}`"
+                    class="col-sm-4">
+                    <b-form-datepicker
+                      :id="`task-startdate-${index}`"
+                      v-model="taskEditViewList[index].start_date"
+                      today-button
+                      reset-button
+                      close-button
+                      locale="ja"
+                      required></b-form-datepicker>
+                  </b-form-group>
+                  <b-form-group
+                    label="開始時間："
+                    :label-for="`task-starttime-${index}`"
+                    class="col-sm-4">
+                    <b-form-timepicker
+                      :id="`task-starttime-${index}`"
+                      v-model="taskEditViewList[index].start_time"
+                      now-button
+                      reset-button
+                      locale="ja"
+                      required></b-form-timepicker>
+                  </b-form-group>
+                  <div class="col-sm-4"></div>
+                   <b-form-group
+                    label="終了日付："
+                    :label-for="`task-enddate-${index}`"
+                    class="col-sm-4">
+                   <b-form-datepicker
+                      :id="`task-enddate-${index}`"
+                      v-model="taskEditViewList[index].end_date"
+                      today-button
+                      reset-button
+                      close-button
+                      locale="ja"></b-form-datepicker>
+                  </b-form-group>
+                  <b-form-group
+                    label="終了時間："
+                    :label-for="`task-endtime-${index}`"
+                    class="col-sm-4">
+                    <b-form-timepicker
+                      :id="`task-endtime-${index}`"
+                      v-model="taskEditViewList[index].end_time"
+                      now-button
+                      reset-button
+                      locale="ja"></b-form-timepicker>
+                  </b-form-group>
+                  <div class="col-sm-12">
+                    <b-button type="reset" variant="outline-warning">キャンセル</b-button>
+                    <b-button type="submit" variant="outline-primary">更新</b-button>
+                  </div>
+                </form>
               </b-card-body>
-              <b-button v-if="!editCheckList[index]" @click="doEdit(index)" variant="outline-info">編集</b-button>
-              <b-button v-if="editCheckList[index]" @click="cancelEdit(index)" variant="outline-warning">キャンセル</b-button>
-              <b-button v-if="editCheckList[index]" @click="updateTask(index)" variant="outline-success">更新</b-button>
-              <b-button @click="deleteTask(task.id)" variant="outline-danger">削除</b-button>
             </b-card>
             <!-- TaskCard End -->
           </div>
@@ -147,6 +171,7 @@ export default {
   },
   methods: {
     async getTasks () {
+      this.initMessages()
       this.taskList = await this.$axios.$get('/api/task/')
       this.taskViewList = this.taskList.filter(
         task => task.start_date === this.searchDate
@@ -159,14 +184,14 @@ export default {
 
       this.editedMessageList = []
       for (let i = 0; i < this.taskViewList.length; i++) {
-        console.log(this.editedMessageList[i])
-        this.editedMessageList.push({ message: '', hasError: false })
+        this.editedMessageList.push({ hasError: false, message: '' })
       }
 
       this.taskEditViewList = _.cloneDeepWith(this.taskViewList)
     },
     async registTask () {
-      // stateを初期化
+      // 初期化
+      this.initMessages()
       this.newTask.start_date = null
       this.newTask.start_time = null
 
@@ -205,6 +230,8 @@ export default {
       if (this.newTask.start_date === this.searchDate) {
         this.getTasks()
       }
+
+      this.newTask.title = ''
     },
     async updateTask (index) {
       // 更新内容を設定
@@ -224,37 +251,47 @@ export default {
         this.$set(this.editCheckList, index, false)
         this.editedMessageList[index].hasError = false
         this.editedMessageList[index].message = 'updated!'
+        setTimeout(() => {
+          this.editedMessageList[index].message = ''
+        }, 3000)
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
-        this.errorFlg = true
-        this.errorMessage = 'データ更新時にエラーが発生しました。'
-        this.editedMessageList[index].hasError = true
-        this.editedMessageList[index].message = 'failed!'
-      } finally {
-        setTimeout(() => {
-          this.editedMessageList[index].hasError = false
-          this.editedMessageList[index].message = ''
-        }, 3000)
+        this.$set(this.editedMessageList, index, { hasError: true, message: 'failed!' })
+        // for (let i = 0; i < Object.keys(error.response.data).length; i++) {
+        //   this.editedMessageList[index].message.push(error.response.data[i])
+        // }
       }
     },
-    async deleteTask (id) {
+    async deleteTask (id, index) {
       try {
         await this.$axios.$delete(`/api/task/${id}/`)
         this.getTasks()
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
-        this.errorFlg = true
-        this.errorMessage = 'データ削除時にエラーが発生しました。'
+        this.$set(this.editedMessageList, index, { hasError: true, message: 'failed!' })
       }
     },
     doEdit (index) {
       this.$set(this.editCheckList, index, true)
+      this.$set(this.editedMessageList, index, { hasError: false, message: '' })
     },
     cancelEdit (index) {
       this.$set(this.editCheckList, index, false)
       this.taskEditViewList[index] = _.cloneDeepWith(this.taskViewList[index]) // 編集前の状態に初期化
+      this.$set(this.editedMessageList, index, { hasError: false, message: '' })
+    },
+    initMessages () {
+      // 画面上部のエラーメッセージを初期化
+      this.errorFlg = false
+      this.errorMessage = ''
+
+      // 各タスクに表示されているメッセージを初期化
+      if (this.editedMessageList.length <= 0) { return }
+      for (let i = 0; i < this.editedMessageList.length; i++) {
+        this.$set(this.editedMessageList, i, { hasError: false, message: '' })
+      }
     }
   },
   directives: {
@@ -273,5 +310,11 @@ export default {
 <style>
 .task-card {
     box-shadow: 0 1rem 1.5rem rgba(0,0,0,.6);
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .8s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }
 </style>
