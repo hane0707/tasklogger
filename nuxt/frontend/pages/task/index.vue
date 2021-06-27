@@ -148,6 +148,13 @@ import moment from 'moment'
 
 export default {
   name: 'task',
+  directives: {
+    focus: {
+      inserted (el) {
+        el.focus()
+      }
+    }
+  },
   data () {
     return {
       searchDate: moment(new Date()).format('YYYY-MM-DD'),
@@ -168,6 +175,9 @@ export default {
       errorFlg: false,
       errorMessage: ''
     }
+  },
+  created () {
+    this.getTasks()
   },
   methods: {
     async getTasks () {
@@ -293,23 +303,16 @@ export default {
         this.$set(this.editedMessageList, i, { hasError: false, message: '' })
       }
     }
-  },
-  directives: {
-    focus: {
-      inserted (el) {
-        el.focus()
-      }
-    }
-  },
-  created () {
-    this.getTasks()
   }
 }
 </script>
 
 <style>
 .task-card {
-    box-shadow: 0 1rem 1.5rem rgba(0,0,0,.6);
+  background: #d8f0d1;
+  border-style: none;
+  border-radius: 50px;
+  box-shadow: 8px 8px 16px #c2d8bc, -8px -8px 16px #eeffe6;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity .8s;
