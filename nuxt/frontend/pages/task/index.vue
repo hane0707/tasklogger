@@ -1,9 +1,6 @@
 <template>
   <div class="row">
     <div class="col">
-      <b-alert v-model="errorFlg" variant="danger" dismissible>
-        {{ errorMessage }}
-      </b-alert>
       <div class="row task-regist mb-4">
         <input
           id="task-title"
@@ -33,15 +30,6 @@
           <div class="mb-4">
             <!-- TaskCard Start-->
             <b-card class="task-card neumor n-convex">
-              <transition name="fade" v-if="editedMessageList[index].message">
-                <div
-                  class="alert"
-                  :class="{
-                    'alert-success': !editedMessageList[index].hasError,
-                    'alert-danger': editedMessageList[index].hasError }">
-                  {{ editedMessageList[index].message }}
-                </div>
-              </transition>
               <b-card-body v-if="!editCheckList[index]">
                 <b-card-title>{{ task.title }}</b-card-title>
                 <b-card-text>
@@ -51,7 +39,7 @@
                   <p><b>終了日時：</b>{{ task.end_date }} {{ task.end_time }}</p>
                 </b-card-text>
                 <button type="button" @click="doEdit(index)" class="neumor n-convex n-btn mx-2">編集</button>
-                <button type="button" @click="deleteTask(task.id, index)" class="neumor n-convex n-btn mx-2">削除</button>
+                <button type="button" @click="deleteTask(task.id)" class="neumor n-convex n-btn mx-2">削除</button>
               </b-card-body>
               <b-card-body v-else>
                 <form :id="`task-${index}`" class="row">
@@ -177,10 +165,7 @@ export default {
       taskViewList: [],
       taskEditViewList: [],
       viewCount: 0,
-      editCheckList: [],
-      editedMessageList: [],
-      errorFlg: false,
-      errorMessage: ''
+      editCheckList: []
     }
   },
   created () {
@@ -188,7 +173,6 @@ export default {
   },
   methods: {
     async getTasks () {
-      this.initMessages()
       this.taskList = await this.$axios.$get('/api/task/')
       this.taskViewList = this.taskList.filter(
         task => task.start_date === this.searchDate
@@ -199,16 +183,10 @@ export default {
         this.editCheckList[i] = false
       }
 
-      this.editedMessageList = []
-      for (let i = 0; i < this.taskViewList.length; i++) {
-        this.editedMessageList.push({ hasError: false, message: '' })
-      }
-
       this.taskEditViewList = _.cloneDeepWith(this.taskViewList)
     },
     async registTask () {
       // 初期化
-      this.initMessages()
       this.newTask.start_date = null
       this.newTask.start_time = null
 
@@ -236,11 +214,11 @@ export default {
             end_time: this.newTask.start_time
           })
         }
+        this.displayToast('created!', 'success', false)
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
-        this.errorFlg = true
-        this.errorMessage = 'データ登録時にエラーが発生しました。'
+        this.displayToast('create error!', 'danger', true)
       }
 
       // 表示中の日付が登録日と同じ場合、表示を更新
@@ -266,49 +244,40 @@ export default {
         await this.$axios.$patch(`/api/task/${this.taskViewList[index].id}/`, values)
         this.taskViewList[index] = await this.$axios.$get(`/api/task/${this.taskViewList[index].id}/`)
         this.$set(this.editCheckList, index, false)
-        this.editedMessageList[index].hasError = false
-        this.editedMessageList[index].message = 'updated!'
-        setTimeout(() => {
-          this.editedMessageList[index].message = ''
-        }, 3000)
+        this.displayToast('updated!', 'success', false)
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
-        this.$set(this.editedMessageList, index, { hasError: true, message: 'failed!' })
-        // for (let i = 0; i < Object.keys(error.response.data).length; i++) {
-        //   this.editedMessageList[index].message.push(error.response.data[i])
-        // }
+        this.displayToast('update error!', 'danger', true)
       }
     },
-    async deleteTask (id, index) {
+    async deleteTask (id) {
       try {
         await this.$axios.$delete(`/api/task/${id}/`)
         this.getTasks()
+        this.displayToast('deleted!', 'success', false)
       } catch (error) {
         console.log('エラー発生：')
         console.log(error.response)
-        this.$set(this.editedMessageList, index, { hasError: true, message: 'failed!' })
+        this.displayToast('delete error!', 'danger', true)
       }
     },
     doEdit (index) {
       this.$set(this.editCheckList, index, true)
-      this.$set(this.editedMessageList, index, { hasError: false, message: '' })
     },
     cancelEdit (index) {
       this.$set(this.editCheckList, index, false)
       this.taskEditViewList[index] = _.cloneDeepWith(this.taskViewList[index]) // 編集前の状態に初期化
-      this.$set(this.editedMessageList, index, { hasError: false, message: '' })
     },
-    initMessages () {
-      // 画面上部のエラーメッセージを初期化
-      this.errorFlg = false
-      this.errorMessage = ''
-
-      // 各タスクに表示されているメッセージを初期化
-      if (this.editedMessageList.length <= 0) { return }
-      for (let i = 0; i < this.editedMessageList.length; i++) {
-        this.$set(this.editedMessageList, i, { hasError: false, message: '' })
-      }
+    displayToast (message, variant, error) {
+      const autoHideDelay = error ? 60000 : 5000
+      const title = error ? 'Error Notification.' : 'Notification.'
+      this.$bvToast.toast(`${message || 'no message.'}`, {
+        title,
+        variant,
+        autoHideDelay,
+        appendToast: false
+      })
     }
   }
 }
