@@ -9,24 +9,30 @@
           id="task-title"
           v-model="newTask.title"
           type="text"
-          class="form-control col-sm-4"
+          class="form-control neumor n-concave col-sm-4"
           placeholder="タスクのタイトル">
-        <b-button @click="registTask(newTask)" variant="success" class="mx-2 my-sm-0">
+        <button
+          type="button"
+          @click="registTask(newTask)"
+          class="neumor n-convex n-btn mx-2">
           すぐに作業を開始
-        </b-button>
+        </button>
       </div>
       <div class="task-search">
         <div class="row mb-4">
-          <input type="date" v-model="searchDate" class="col-sm-2 form-control">
-          <b-button @click="getTasks()" variant="primary" class="mx-2">
+          <input type="date" v-model="searchDate" class="form-control neumor n-concave col-sm-2">
+          <button
+            type="button"
+            @click="getTasks()"
+            class="neumor n-convex n-btn mx-2">
             検索
-          </b-button>
+          </button>
           <div><span class="align-middle">{{ viewCount }} 件の履歴があります。</span></div>
         </div>
         <div v-for="(task, index) in taskViewList" :key="task.id">
           <div class="mb-4">
             <!-- TaskCard Start-->
-            <b-card class="task-card">
+            <b-card class="task-card neumor n-convex">
               <transition name="fade" v-if="editedMessageList[index].message">
                 <div
                   class="alert"
@@ -44,15 +50,11 @@
                   <p><b>開始日時：</b>{{ task.start_date }} {{ task.start_time }}</p>
                   <p><b>終了日時：</b>{{ task.end_date }} {{ task.end_time }}</p>
                 </b-card-text>
-                <b-button v-if="!editCheckList[index]" @click="doEdit(index)" variant="outline-info">編集</b-button>
-                <b-button @click="deleteTask(task.id, index)" variant="outline-danger">削除</b-button>
+                <button type="button" @click="doEdit(index)" class="neumor n-convex n-btn mx-2">編集</button>
+                <button type="button" @click="deleteTask(task.id, index)" class="neumor n-convex n-btn mx-2">削除</button>
               </b-card-body>
               <b-card-body v-else>
-                <form
-                  :id="`task-${index}`"
-                  @submit.prevent="updateTask(index)"
-                  @reset.prevent="cancelEdit(index)"
-                  class="row">
+                <form :id="`task-${index}`" class="row">
                   <b-form-group
                     label="タイトル："
                     :label-for="`task-title-${index}`"
@@ -61,6 +63,7 @@
                       :id="`task-title-${index}`"
                       v-model="taskEditViewList[index].title"
                       v-focus
+                      class="neumor n-concave"
                       placeholder="タスクのタイトルを記載してください。"
                       maxlength=30
                       required></b-form-input>
@@ -72,7 +75,7 @@
                     <b-form-textarea
                       :id="`task-details-${index}`"
                       v-model="taskEditViewList[index].details"
-                      v-focus
+                      class="neumor n-concave"
                       placeholder="タスクの詳細を記載してください。"
                       maxlength=1000
                       rows="3"
@@ -85,6 +88,7 @@
                     <b-form-datepicker
                       :id="`task-startdate-${index}`"
                       v-model="taskEditViewList[index].start_date"
+                      class="neumor n-concave"
                       today-button
                       reset-button
                       close-button
@@ -98,6 +102,7 @@
                     <b-form-timepicker
                       :id="`task-starttime-${index}`"
                       v-model="taskEditViewList[index].start_time"
+                      class="neumor n-concave"
                       now-button
                       reset-button
                       locale="ja"
@@ -111,6 +116,7 @@
                    <b-form-datepicker
                       :id="`task-enddate-${index}`"
                       v-model="taskEditViewList[index].end_date"
+                      class="neumor n-concave"
                       today-button
                       reset-button
                       close-button
@@ -123,13 +129,14 @@
                     <b-form-timepicker
                       :id="`task-endtime-${index}`"
                       v-model="taskEditViewList[index].end_time"
+                      class="neumor n-concave"
                       now-button
                       reset-button
                       locale="ja"></b-form-timepicker>
                   </b-form-group>
                   <div class="col-sm-12">
-                    <b-button type="reset" variant="outline-warning">キャンセル</b-button>
-                    <b-button type="submit" variant="outline-primary">更新</b-button>
+                    <button type="button" @click="cancelEdit(index)" class="neumor n-convex n-btn mx-2">キャンセル</button>
+                    <button type="button" @click="updateTask(index)" class="neumor n-convex n-btn mx-2">更新</button>
                   </div>
                 </form>
               </b-card-body>
@@ -308,11 +315,28 @@ export default {
 </script>
 
 <style>
-.task-card {
-  background: #d8f0d1;
+.neumor {
+  background: #edeefd;
   border-style: none;
-  border-radius: 50px;
-  box-shadow: 8px 8px 16px #c2d8bc, -8px -8px 16px #eeffe6;
+  border-radius: 10px;
+}
+/* 凸 */
+.n-convex {
+  box-shadow: 8px 8px 16px #d5d6e4, -8px -8px 16px #ffffff;
+}
+/* 凹 */
+.n-concave {
+  box-shadow: inset 5px 5px 10px #d5d6e4, -5px -5px 10px #ffffff;
+}
+.n-btn {
+  padding: 0.5rem 1rem 0.5rem;
+  transition: all .2s 0s ease-in-out;
+}
+.n-btn:hover {
+  box-shadow: 3px 3px 6px #d5d6e4, -3px -3px 6px #ffffff;
+}
+.n-btn:active {
+  box-shadow: inset 3px 3px 6px #d5d6e4, -3px -3px 6px #ffffff;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity .8s;

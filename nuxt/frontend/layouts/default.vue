@@ -24,7 +24,7 @@ export default {
 
 <style>
 body {
-  background: #d8f0d1;
+  background: #edeefd;
 }
 main {
   /* margin-top: 70px; */
